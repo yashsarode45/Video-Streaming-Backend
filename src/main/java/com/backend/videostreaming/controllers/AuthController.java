@@ -9,6 +9,7 @@ import com.backend.videostreaming.security.JwtHelper;
 import com.backend.videostreaming.services.EmailService;
 import com.backend.videostreaming.services.OTPService;
 import com.backend.videostreaming.services.UserService;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,7 +158,7 @@ public class AuthController {
             userService.updateResetPasswordToken(email, token);
 
             String resetUrl = "http://localhost:3000/update-password/" + token;
-            emailService.sendPasswordResetEmail(email, "Password Reset Link", "Password reset link: " + resetUrl + "Link will expire in 5 min");
+            emailService.sendPasswordResetEmail(email, "Password Reset Link", "Link will expire in 5 min" +"Password reset link: " + resetUrl);
 
             response.put("success", true);
             response.put("message", "Reset link sent");

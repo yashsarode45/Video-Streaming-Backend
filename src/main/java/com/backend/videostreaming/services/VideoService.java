@@ -47,6 +47,7 @@ public class VideoService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public VideoDTO createVideo(String title, String description, MultipartFile videoFile, MultipartFile thumbnailFile, String userEmail) throws IOException {
         User user = userService.findByEmail(userEmail);
 
@@ -152,12 +153,15 @@ public class VideoService {
         videoDTO.setThumbnailUrl(video.getThumbnailUrl());
         videoDTO.setTimeDuration(video.getTimeDuration());
         videoDTO.setUploadTime(video.getUploadTime());
-        videoDTO.setUser(new UserSimpleDTO(video.getUser().getName(), video.getUser().getEmail()));
-        videoDTO.setLikeCount(video.getLikes().size());
+        if (video.getUser() != null) {
+            videoDTO.setUser(new UserSimpleDTO(video.getUser().getName(), video.getUser().getEmail()));
+        }
+
+        videoDTO.setLikeCount(video.getLikes() != null ? video.getLikes().size() : 0);
 
         // Adjust the logic for setting isLikedByCurrentUser based on whether currentUser is present
         videoDTO.setLikedByCurrentUser(
-                currentUser.map(user -> video.getLikes().stream()
+                currentUser.map(user -> video.getLikes() != null && video.getLikes().stream()
                                 .anyMatch(like -> like.getUser().equals(user)))
                         .orElse(false)); // Default to false if currentUserOpt is empty
 
@@ -172,15 +176,17 @@ public class VideoService {
         dto.setThumbnailUrl(video.getThumbnailUrl());
         dto.setTimeDuration(video.getTimeDuration());
         dto.setUploadTime(video.getUploadTime());
-        dto.setUserId(video.getUser().getUserId());
-        dto.setLikeCount(video.getLikes().size());
-        dto.setLikedByCurrentUser(currentUser != null && video.getLikes().stream()
+        if (video.getUser() != null) {
+            dto.setUserId(video.getUser().getUserId());
+        }
+        dto.setLikeCount(video.getLikes() != null ? video.getLikes().size() : 0);
+        dto.setLikedByCurrentUser(currentUser != null && video.getLikes() != null && video.getLikes().stream()
                 .anyMatch(like -> like.getUser().equals(currentUser)));
 
-        List<CommentDTO> commentDTOs = video.getComments().stream()
+        List<CommentDTO> commentDTOs = video.getComments() != null ? video.getComments().stream()
                 .filter(comment -> comment.getParentComment() == null)
                 .map(comment -> convertToCommentDTO(comment, new HashSet<>()))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()) : new ArrayList<>();
 
         dto.setComments(commentDTOs);
 
@@ -188,7 +194,7 @@ public class VideoService {
     }
 
     private CommentDTO convertToCommentDTO(Comment comment, Set<Long> processedComments) {
-        if (processedComments.contains(comment.getId())) {
+        if (comment == null  || processedComments.contains(comment.getId())) {
             return null; // Avoid circular references
         }
         processedComments.add(comment.getId());
@@ -196,17 +202,22 @@ public class VideoService {
         CommentDTO dto = new CommentDTO();
         dto.setCommentId(comment.getId());
         dto.setCommentText(comment.getContent());
-        dto.setUserId(comment.getUser().getUserId());
-        dto.setUserName(comment.getUser().getName());
-        dto.setUserEmail(comment.getUser().getEmail());
-        dto.setVideoId(comment.getVideo().getId());
+        if (comment.getUser() != null) {
+            dto.setUserId(comment.getUser().getUserId());
+            dto.setUserName(comment.getUser().getName());
+            dto.setUserEmail(comment.getUser().getEmail());
+        }
+
+        if (comment.getVideo() != null) {
+            dto.setVideoId(comment.getVideo().getId());
+        }
         dto.setParentCommentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null);
         dto.setCreatedAt(comment.getCreatedAt());
 
-        List<CommentDTO> replies = comment.getReplies().stream()
+        List<CommentDTO> replies = comment.getReplies() != null ? comment.getReplies().stream()
                 .map(reply -> convertToCommentDTO(reply, new HashSet<>(processedComments)))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()) : new ArrayList<>();
 
         dto.setReplies(replies);
 

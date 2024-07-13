@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class CommentService {
 
     private final Logger logger = LoggerFactory.getLogger(CommentService.class);
@@ -33,6 +32,7 @@ public class CommentService {
     @Autowired
     private UserRepository userRepository;
 
+    @Transactional
     public CommentDTO createComment(Long videoId, String content, String userEmail, Long parentCommentId) {
         logger.info("userEmail is {}", userEmail);
         logger.info("videoId is {}", videoId);
@@ -70,19 +70,29 @@ public class CommentService {
 
     private CommentDTO convertToCommentDTO(Comment comment) {
         logger.info("Before building");
-        CommentDTO dto = CommentDTO.builder()
+        CommentDTO.CommentDTOBuilder builder = CommentDTO.builder()
                 .commentId(comment.getId())
                 .commentText(comment.getContent())
-                .userId(comment.getUser().getUserId())
-                .userName(comment.getUser().getName())
-                .userEmail(comment.getUser().getEmail())
-                .videoId(comment.getVideo().getId())
                 .createdAt(comment.getCreatedAt())
-                .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null)
-                .replies(new ArrayList<>())
-                .build();
+                .replies(new ArrayList<>());
+
+        if (comment.getUser() != null) {
+            builder.userId(comment.getUser().getUserId())
+                    .userName(comment.getUser().getName())
+                    .userEmail(comment.getUser().getEmail());
+        }
+
+        if (comment.getVideo() != null) {
+            builder.videoId(comment.getVideo().getId());
+        }
+
+        if (comment.getParentComment() != null) {
+            builder.parentCommentId(comment.getParentComment().getId());
+        }
+
+        CommentDTO dto = builder.build();
         logger.info("After building");
-        if (comment.getReplies() != null) {
+        if (comment.getReplies() != null && !comment.getReplies().isEmpty()) {
             for (Comment reply : comment.getReplies()) {
                 dto.getReplies().add(convertToCommentDTO(reply));
             }

@@ -5,6 +5,7 @@ import com.backend.videostreaming.DTOs.VideoDTO;
 import com.backend.videostreaming.entities.User;
 import com.backend.videostreaming.entities.Video;
 import com.backend.videostreaming.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Service
 public class UserService {
@@ -29,6 +31,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public User createUser(User user) {
         user.setUserId(UUID.randomUUID().toString());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -63,9 +66,14 @@ public class UserService {
         userDTO.setUserId(user.getUserId());
         userDTO.setName(user.getName());
         userDTO.setEmail(user.getEmail());
-        userDTO.setVideos(user.getVideos().stream()
-                .map(this::convertToVideoDTO)
-                .collect(Collectors.toList()));
+        // Check if the videos list is null before streaming
+        if (user.getVideos() != null) {
+            userDTO.setVideos(user.getVideos().stream()
+                    .map(this::convertToVideoDTO)
+                    .collect(Collectors.toList()));
+        } else {
+            userDTO.setVideos(new ArrayList<>()); // Set an empty list if videos is null
+        }
         return userDTO;
     }
 
