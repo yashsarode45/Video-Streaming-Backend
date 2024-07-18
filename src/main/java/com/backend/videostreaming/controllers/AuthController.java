@@ -30,6 +30,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class AuthController {
 
     @Autowired
@@ -121,7 +122,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<Map<String, Object>> signUp(@RequestBody User user, @RequestParam String otp) {
         Map<String, Object> response = new HashMap<>();
-
+        logger.info("In /signup with user {}", user);
         try {
             if (!otpService.validateOTP(user.getEmail(), otp)) {
                 response.put("success", false);

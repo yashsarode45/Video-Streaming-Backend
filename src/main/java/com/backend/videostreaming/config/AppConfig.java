@@ -28,18 +28,6 @@ public class AppConfig {
     @Value("${cloudinary.api_secret}")
     private String apiSecret;
 
-
-    // commented since with db we have a written a CustomUserDetailService which will be injected
-    // automatically called by Spring Security
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        UserDetails userDetails = User.builder().
-//                username("DURGESH")
-//                .password(passwordEncoder().encode("DURGESH")).roles("ADMIN").
-//                build();
-//        return new InMemoryUserDetailsManager(userDetails); //sets up an in-memory store of users for authentication.
-//    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

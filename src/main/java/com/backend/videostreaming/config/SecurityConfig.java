@@ -12,6 +12,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 public class SecurityConfig {
@@ -33,12 +38,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(csrf -> csrf.disable()).cors(cors -> cors.disable())
+        http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/home/**").authenticated() // Configuring Authorization Rules:
-                        .requestMatchers("/auth/login").permitAll().requestMatchers("/auth/signup").permitAll()
-                        .requestMatchers("/auth/send-otp").permitAll()
-                        .requestMatchers("/auth/reset-password").permitAll()
-                        .requestMatchers("/auth/reset-password-token").permitAll()
+                        .requestMatchers("/auth/login", "/auth/signup", "/auth/send-otp", "/auth/reset-password", "/auth/reset-password-token").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(point)) // This will respond with a 401 Unauthorized status and a custom message if the user is not authenticated.
@@ -48,6 +50,19 @@ public class SecurityConfig {
         // This ensures that JWT authentication is processed before the standard username-password authentication.
         http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Add your frontend URL
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     // a specific type of AuthenticationProvider that uses a UserDetailsService to retrieve user details and a PasswordEncoder to validate passwords.
