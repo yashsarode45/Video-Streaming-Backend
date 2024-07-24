@@ -54,6 +54,7 @@ public class CommentService {
             Comment parentComment = commentRepository.findById(parentCommentId)
                     .orElseThrow(() -> new RuntimeException("Parent comment not found"));
             comment.setParentComment(parentComment);
+            parentComment.getReplies().add(comment);
         }
         logger.info("before saving");
         Comment savedComment = commentRepository.save(comment);

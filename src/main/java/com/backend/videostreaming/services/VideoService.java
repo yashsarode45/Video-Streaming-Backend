@@ -178,6 +178,7 @@ public class VideoService {
         dto.setUploadTime(video.getUploadTime());
         if (video.getUser() != null) {
             dto.setUserId(video.getUser().getUserId());
+            dto.setUserName(video.getUser().getName());
         }
         dto.setLikeCount(video.getLikes() != null ? video.getLikes().size() : 0);
         dto.setLikedByCurrentUser(currentUser != null && video.getLikes() != null && video.getLikes().stream()

@@ -25,5 +25,6 @@ public class VideoDetailsDTO {
     private String userId;
     private int likeCount;
     private boolean isLikedByCurrentUser;
+    private String userName;
     private List<CommentDTO> comments;
 }

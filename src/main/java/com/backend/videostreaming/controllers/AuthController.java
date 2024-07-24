@@ -158,7 +158,7 @@ public class AuthController {
             String token = UUID.randomUUID().toString();
             userService.updateResetPasswordToken(email, token);
 
-            String resetUrl = "http://localhost:3000/update-password/" + token;
+            String resetUrl = "http://localhost:5173/update-password/" + token;
             emailService.sendPasswordResetEmail(email, "Password Reset Link", "Link will expire in 5 min" +"Password reset link: " + resetUrl);
 
             response.put("success", true);
